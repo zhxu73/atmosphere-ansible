@@ -1,6 +1,7 @@
 ---
 - name: Enable ssh access from gateone shell host into user vm
-  hosts: atmosphere
+  hosts: 127.0.0.1
+  connection: local
   vars:
     EXTERNAL_HOST_KEY_NAME: "id_rsa_gateone"
     EXTERNAL_HOST_KEY_DIR: "/var/lib/gateone/users/{{ ATMOUSERNAME }}/.ssh"
@@ -26,7 +27,8 @@
       when: (SETUP_GUACAMOLE | default(true)) == false
 
 - name: Enable ssh access from guac_server host into user vm
-  hosts: atmosphere
+  hosts: 127.0.0.1
+  connection: local
   vars:
     EXTERNAL_HOST_KEY_DIR: "/etc/guacamole/keys/{{ ATMOUSERNAME }}"
     EXTERNAL_HOST_KEY_OWNER: tomcat7

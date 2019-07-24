@@ -1,6 +1,7 @@
 ---
 - name: Playbook updates package manager and installs atmosphere dependencies
-  hosts: atmosphere
+  hosts: 127.0.0.1
+  connection: local
   roles:
     - atmo-pre-setup
     - fix-centos6-networking

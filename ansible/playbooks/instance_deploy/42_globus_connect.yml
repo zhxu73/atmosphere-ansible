@@ -1,6 +1,7 @@
 ---
 - name: Playbook to add globus connect to the instance
-  hosts: atmosphere
+  hosts: 127.0.0.1
+  connection: local
   roles:
     # GLOBUS_ENDPOINT variable required
     # - { role: atmo-globus-connect, when: SETUP_GLOBUS_CONNECT is defined and SETUP_GLOBUS_CONNECT == true }
