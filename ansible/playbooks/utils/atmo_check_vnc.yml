@@ -1,5 +1,6 @@
 ---
 - name: Playbook to fail when VNC is not running
-  hosts: atmosphere
+  hosts: 127.0.0.1
+  connection: local
   roles:
     - atmo-check-vnc

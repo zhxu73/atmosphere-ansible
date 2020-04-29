@@ -56,11 +56,6 @@
 ########
 # MOTD #
 ########
-- name: 'install motd file'
-  copy:
-    content: '{{ MOTD }}'
-    dest: '/etc/motd'
-
 - name: remove motd help text file, if present
   file: path=/etc/update-motd.d/10-help-text state=absent
   when: ansible_distribution == "Ubuntu"

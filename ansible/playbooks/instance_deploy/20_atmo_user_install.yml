@@ -1,6 +1,7 @@
 ---
 - name: Playbook will call roles associated with 'bootstrapping' atmosphere and the LINUX USERNAME
-  hosts: atmosphere
+  hosts: 127.0.0.1
+  connection: local
   roles:
     - atmo-common
     - atmo-setup-user

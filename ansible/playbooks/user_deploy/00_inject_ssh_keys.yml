@@ -1,5 +1,6 @@
 ---
 - name: Playbook to deploy users personal ssh keys
-  hosts: atmosphere
+  hosts: 127.0.0.1
+  connection: local
   roles:
       - atmo-user-ssh-keys
