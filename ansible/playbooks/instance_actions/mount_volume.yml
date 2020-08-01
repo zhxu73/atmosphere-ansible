@@ -19,6 +19,6 @@
 
 
 - name: Play to mount a volume
-  hosts: all
+  hosts: atmosphere
   roles:
     - atmo-mount-volume
