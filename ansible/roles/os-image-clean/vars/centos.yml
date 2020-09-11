@@ -1,0 +1,14 @@
+distro_extra_cmd: |
+    # Sysconfig stuff
+    mkdir /etc/sysconfig
+    mkdir /etc/sysconfig/network-scripts
+    touch /etc/sysconfig/network-scripts/ifcfg-eth0
+    edit /etc/sysconfig/network-scripts/ifcfg-eth0:s/^HWADDR=*\\n//
+    edit /etc/sysconfig/network-scripts/ifcfg-eth0:s/^MACADDR=*\\n//
+    # SELinux stuff
+    mkdir /etc/syslinux
+    touch /etc/syslinux/selinux
+    edit /etc/syslinux/selinux:s/SELINUX=.*/SELINUX=disabled/
+    mkdir /etc/selinux
+    touch /etc/selinux/config
+    edit /etc/selinux/config:s/SELINUX=.*/SELINUX=disabled/

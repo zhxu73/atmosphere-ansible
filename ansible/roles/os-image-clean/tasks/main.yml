@@ -1,0 +1,61 @@
+---
+# tasks file for os-image-clean
+- name: check required vars are set
+  assert:
+    that: "{{item}} is defined"
+  with_items:
+    - snapshot_file_path
+
+- name: check for snapshot file
+  stat:
+    path: "{{snapshot_file_path}}"
+  register: result
+  failed_when: not result.stat.exists or not result.stat.isreg
+
+- name: fsck image
+  shell: |
+      ls  {{snapshot_file_path}}
+
+- name: run virt-inspector on image
+  shell:
+    cmd: |
+      virt-inspector -a {{snapshot_file_path}} > virt-inspector.out
+  register: virt_inspector_out
+
+- name: find distro from virt-inspector output
+  changed: false
+  shell: |
+      cat virt-inspector.out | python3 {{role_path}}/files/xml_find.py distro
+  register: distro_info
+
+- name: distro of snapshot
+  debug: var=distro_info.stdout
+
+- name: check for cloud-init in virt-inspector output
+  shell: |
+      cat virt-inspector.out
+  failed_when: >
+    virt_inspector_output.rc != 0 or
+    "<name>cloud-init</name>" not in virt_inspector_output.stdout
+  register: virt_inspector_output
+
+- name: prep fstrim command
+  set_fact:
+    fstrim_cmd: '{{"run-command fstrim --all" if "<name>util-linux</name>" in virt_inspector_output.stdout else "" }}'
+
+- name: prep command file for virt-sysprep
+  template:
+    src: command.txt.j2
+    dest: /opt/virt-sysprep_cmd.txt
+  vars:
+    distro: "{{distro_info.stdout}}"
+    extra_cmd: "{{distro_extra_cmd[distro]}}"
+
+- name: virt-sysprep
+  shell: |
+      virt-sysprep -a {{snapshot_file_path}} \
+          --operations defaults,kerberos-data,user-account \
+          --hostname {{distro}} \
+          --commands-from-file /opt/virt-sysprep_cmd.txt
+  vars:
+    distro: "{{distro_info.stdout}}"
