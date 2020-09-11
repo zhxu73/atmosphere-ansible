@@ -1,0 +1,5 @@
+---
+# defaults file for os-image-create
+SNAPSHOT_PREFIX: "ChromoSnapShot_"
+OPENRC_PATH: /root/.openrc
+IMAGE_TAGS:

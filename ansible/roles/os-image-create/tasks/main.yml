@@ -1,0 +1,108 @@
+---
+# tasks file for os-image-create
+- name: check required vars are set
+  assert:
+    that: "{{item}} is defined"
+  with_items:
+    - instance_uuid
+    - snapshot_dir
+
+- name: check for openrc file
+  stat:
+    path: "{{OPENRC_PATH}}"
+  register: result
+  failed_when: not result.stat.exists or not result.stat.isreg
+
+- name: check if instance exists
+  changed_when: false
+  shell:
+    cmd: |
+      source {{OPENRC_PATH}}
+      openstack server show {{instance_uuid}} -f json
+    executable: /bin/bash
+  register: result
+
+# - name: stop instance
+#   when: instance.status != "SHUTOFF"
+#   shell:
+#     cmd: |
+#       source {{OPENRC_PATH}}
+#       openstack server stop {{instance_uuid}}
+#     executable: /bin/bash
+#   vars:
+#     instance: "{{result.stdout | from_json}}"
+
+- name: create snapshot from instance (wait for completion)
+  shell:
+    cmd: |
+      source {{OPENRC_PATH}}
+      openstack server image create --wait --name {{snapshot_name}} {{instance_uuid}} -f json
+    executable: /bin/bash
+  vars:
+    snapshot_name: "{{SNAPSHOT_PREFIX}}{{instance_uuid}}"
+  register: os_img_create
+
+- set_fact:
+    snapshot: "{{os_img_create.stdout | from_json}}"
+
+- name: snapshot uuid
+  debug:
+    var: snapshot.id
+
+- name: tmp output
+  template:
+    src: output.json.j2
+    dest: output.json
+  vars:
+    snapshot_name: "{{snapshot.name}}"
+    snapshot_uuid: "{{snapshot.id}}"
+    snapshot_path: ""
+
+- name: check if snapshot is present and active
+  shell:
+    cmd: |
+      source {{OPENRC_PATH}}
+      openstack image show {{snapshot.id}} -f json
+    executable: /bin/bash
+  vars:
+    snapshot_status: "{{os_img_show.stdout | from_json | json_query('status')}}"
+  register: os_img_show
+  until: snapshot_status == "active"
+  retries: 30
+  delay: 10
+
+- set_fact:
+    snapshot: "{{os_img_show.stdout | from_json}}"
+
+- name: add tags to image
+  when: IMAGE_TAGS is not none and IMAGE_TAGS | length > 0
+  shell:
+    cmd: |
+      source {{OPENRC_PATH}}
+      openstack image set {{snapshot.id}}  --tag {{item}}
+    executable: /bin/bash
+  with_items: IMAGE_TAGS
+
+- name: download snapshot {{snapshot_file_path}}
+  shell:
+    cmd: |
+      source {{OPENRC_PATH}}
+      openstack image save --file {{snapshot_file_path}} {{snapshot.id}}
+    executable: /bin/bash
+    creates: "{{snapshot_file_path}}"
+  vars:
+    snapshot_filename: "{{SNAPSHOT_PREFIX}}{{instance_uuid}}.qcow2"
+    snapshot_file_path: "{{snapshot_dir}}/{{snapshot_filename}}"
+  register: os_img_save
+  until: os_img_save is not failed
+  retries: 3
+
+- name: success output
+  template:
+    src: output.json.j2
+    dest: output.json
+  vars:
+    snapshot: "{{os_img_show.stdout | from_json}}"
+    snapshot_name: "{{snapshot.name}}"
+    snapshot_uuid: "{{snapshot.id}}"
+    snapshot_path: "{{snapshot_dir}}/{{SNAPSHOT_PREFIX}}{{instance_uuid}}.qcow2"
