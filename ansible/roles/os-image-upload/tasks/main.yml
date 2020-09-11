@@ -1,0 +1,64 @@
+---
+# tasks file for os-image-upload
+- name: check required vars are set
+  assert:
+    that: "{{item}} is defined"
+  with_items:
+    - image_name
+    - snapshot_file_path
+
+- name: check for snapshot file
+  stat:
+    path: "{{snapshot_file_path}}"
+  register: result
+  failed_when: not result.stat.exists or not result.stat.isreg
+
+- name: upload to glance
+  shell:
+    cmd: |
+      source {{OPENRC_PATH}}
+      openstack image create --container-format bare --disk-format qcow2 \
+          --file {{snapshot_file_path}} {{image_name}} -f json
+    executable: /bin/bash
+  register: os_img_create
+
+- name: check if snapshot is present
+  shell:
+    cmd: |
+      source {{OPENRC_PATH}}
+      openstack image show {{image.id}} -f json
+    executable: /bin/bash
+  vars:
+    image: "{{os_img_create.stdout | from_json}}"
+  register: os_img_show
+
+- name: image uuid
+  debug:
+    var: image.id
+  vars:
+    image: "{{os_img_show.stdout | from_json}}"
+
+- name: add tags to image
+  when: IMAGE_TAGS is not none and IMAGE_TAGS | length > 0
+  shell:
+    cmd: |
+      source {{OPENRC_PATH}}
+      openstack image set {{image_uuid}}  --tag {{tag}}
+    executable: /bin/bash
+  with_items: IMAGE_TAGS
+
+- name: change visibility to private
+  when: false # TODO
+  shell:
+    cmd: |
+      source {{OPENRC_PATH}}
+      openstack image set {{image_uuid}} --private
+    executable: /bin/bash
+
+- name: change visibility to public
+  when: false # TODO
+  shell:
+    cmd: |
+      source {{OPENRC_PATH}}
+      openstack image set {{image_uuid}} --public
+    executable: /bin/bash
