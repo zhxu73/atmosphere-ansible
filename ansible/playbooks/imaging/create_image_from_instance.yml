@@ -1,0 +1,5 @@
+---
+- name: create image from instance
+  hosts: localhost
+  roles:
+    - role: os-image-create
