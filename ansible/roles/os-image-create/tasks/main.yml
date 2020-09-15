@@ -22,16 +22,6 @@
     executable: /bin/bash
   register: result
 
-# - name: stop instance
-#   when: instance.status != "SHUTOFF"
-#   shell:
-#     cmd: |
-#       source {{OPENRC_PATH}}
-#       openstack server stop {{instance_uuid}}
-#     executable: /bin/bash
-#   vars:
-#     instance: "{{result.stdout | from_json}}"
-
 - name: create snapshot from instance (wait for completion)
   shell:
     cmd: |
