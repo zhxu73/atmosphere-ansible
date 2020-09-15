@@ -93,7 +93,7 @@
     snapshot_file_path: "{{snapshot_dir}}/{{snapshot_filename}}"
   register: os_img_save
   until: os_img_save is not failed
-  retries: 3
+  retries: 5
 
 - name: success output
   template:
