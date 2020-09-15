@@ -1,0 +1,4 @@
+---
+# defaults file for os-image-download
+SNAPSHOT_PREFIX: "ChromoSnapShot_"
+OPENRC_PATH: /root/.openrc

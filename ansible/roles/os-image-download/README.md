@@ -1,7 +1,7 @@
 Role Name
 =========
 
-Create an image(snapshot) from an VM instance the image
+Download a snapshot to an image file.
 
 Requirements
 ------------

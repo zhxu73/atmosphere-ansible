@@ -46,11 +46,10 @@
 - name: tmp output
   template:
     src: output.json.j2
-    dest: "{{snapshot_dir}}/output.json"
+    dest: "{{snapshot_dir}}/create-output.json"
   vars:
     snapshot_name: "{{snapshot.name}}"
     snapshot_uuid: "{{snapshot.id}}"
-    snapshot_path: ""
 
 - name: check if snapshot is present and active
   shell:
@@ -81,26 +80,10 @@
     executable: /bin/bash
   with_items: IMAGE_TAGS
 
-- name: download snapshot {{snapshot_file_path}}
-  shell:
-    cmd: |
-      source {{OPENRC_PATH}}
-      openstack image save --file {{snapshot_file_path}} {{snapshot.id}}
-    executable: /bin/bash
-    creates: "{{snapshot_file_path}}"
-  vars:
-    snapshot_filename: "{{SNAPSHOT_PREFIX}}{{instance_uuid}}.qcow2"
-    snapshot_file_path: "{{snapshot_dir}}/{{snapshot_filename}}"
-  register: os_img_save
-  until: os_img_save is not failed
-  retries: 5
-
 - name: success output
   template:
     src: output.json.j2
-    dest: "{{snapshot_dir}}/output.json"
+    dest: "{{snapshot_dir}}/create-output.json"
   vars:
-    snapshot: "{{os_img_show.stdout | from_json}}"
     snapshot_name: "{{snapshot.name}}"
     snapshot_uuid: "{{snapshot.id}}"
-    snapshot_path: "{{snapshot_dir}}/{{SNAPSHOT_PREFIX}}{{instance_uuid}}.qcow2"
