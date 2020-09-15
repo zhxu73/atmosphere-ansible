@@ -23,7 +23,7 @@
   register: virt_inspector_out
 
 - name: find distro from virt-inspector output
-  changed: false
+  changed_when: false
   shell: |
       cat virt-inspector.out | python3 {{role_path}}/files/xml_find.py distro
   register: distro_info
