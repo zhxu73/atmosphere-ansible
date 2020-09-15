@@ -52,7 +52,7 @@
 - name: tmp output
   template:
     src: output.json.j2
-    dest: output.json
+    dest: "{{snapshot_dir}}/output.json"
   vars:
     snapshot_name: "{{snapshot.name}}"
     snapshot_uuid: "{{snapshot.id}}"
@@ -100,7 +100,7 @@
 - name: success output
   template:
     src: output.json.j2
-    dest: output.json
+    dest: "{{snapshot_dir}}/output.json"
   vars:
     snapshot: "{{os_img_show.stdout | from_json}}"
     snapshot_name: "{{snapshot.name}}"
