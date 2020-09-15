@@ -7,6 +7,19 @@
     - snapshot_uuid
     - snapshot_dir
 
+- name: check openstack secrets are set
+  assert:
+    that: "{{item}} is defined"
+  with_items:
+    - OS_PROJECT_DOMAIN_NAME
+    - OS_USER_DOMAIN_NAME
+    - OS_PROJECT_NAME
+    - OS_USERNAME
+    - OS_REGION_NAME
+    - OS_PASSWORD
+    - OS_AUTH_URL
+    - OS_IDENTITY_API_VERSION
+
 - name: check for openrc file
   stat:
     path: "{{OPENRC_PATH}}"
@@ -14,13 +27,18 @@
   failed_when: not result.stat.exists or not result.stat.isreg
 
 - name: check if snapshot is present and active
-  shell:
-    cmd: |
-      source {{OPENRC_PATH}}
-      openstack image show {{snapshot_uuid}} -f json
-    executable: /bin/bash
+  shell: openstack image show {{snapshot_uuid}} -f json
   vars:
     snapshot_status: "{{os_img_show.stdout | from_json | json_query('status')}}"
+  environment:
+    OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
+    OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
+    OS_PROJECT_NAME: "{{OS_PROJECT_NAME}}"
+    OS_USERNAME: "{{OS_USERNAME}}"
+    OS_REGION_NAME: "{{OS_REGION_NAME}}"
+    OS_PASSWORD: "{{OS_PASSWORD}}"
+    OS_AUTH_URL: "{{OS_AUTH_URL}}"
+    OS_IDENTITY_API_VERSION: "{{OS_IDENTITY_API_VERSION}}"
   register: os_img_show
   until: snapshot_status == "active"
   retries: 6
@@ -35,14 +53,20 @@
 
 - name: download snapshot {{snapshot_file_path}}
   shell:
-    cmd: |
-      source {{OPENRC_PATH}}
-      openstack image save --file {{snapshot_file_path}} {{snapshot.id}}
-    executable: /bin/bash
+    cmd: openstack image save --file {{snapshot_file_path}} {{snapshot.id}}
     creates: "{{snapshot_file_path}}"
   vars:
     snapshot_filename: "{{SNAPSHOT_PREFIX}}{{instance_uuid}}.qcow2"
     snapshot_file_path: "{{snapshot_dir}}/{{snapshot_filename}}"
+  environment:
+    OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
+    OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
+    OS_PROJECT_NAME: "{{OS_PROJECT_NAME}}"
+    OS_USERNAME: "{{OS_USERNAME}}"
+    OS_REGION_NAME: "{{OS_REGION_NAME}}"
+    OS_PASSWORD: "{{OS_PASSWORD}}"
+    OS_AUTH_URL: "{{OS_AUTH_URL}}"
+    OS_IDENTITY_API_VERSION: "{{OS_IDENTITY_API_VERSION}}"
   register: os_img_save
   until: os_img_save is not failed
   retries: 5

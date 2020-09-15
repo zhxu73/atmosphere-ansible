@@ -7,29 +7,46 @@
     - instance_uuid
     - snapshot_dir
 
-- name: check for openrc file
-  stat:
-    path: "{{OPENRC_PATH}}"
-  register: result
-  failed_when: not result.stat.exists or not result.stat.isreg
+- name: check openstack secrets are set
+  assert:
+    that: "{{item}} is defined"
+  with_items:
+    - OS_PROJECT_DOMAIN_NAME
+    - OS_USER_DOMAIN_NAME
+    - OS_PROJECT_NAME
+    - OS_USERNAME
+    - OS_REGION_NAME
+    - OS_PASSWORD
+    - OS_AUTH_URL
+    - OS_IDENTITY_API_VERSION
 
 - name: check if instance exists
   changed_when: false
-  shell:
-    cmd: |
-      source {{OPENRC_PATH}}
-      openstack server show {{instance_uuid}} -f json
-    executable: /bin/bash
+  shell: openstack server show {{instance_uuid}} -f json
+  environment:
+    OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
+    OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
+    OS_PROJECT_NAME: "{{OS_PROJECT_NAME}}"
+    OS_USERNAME: "{{OS_USERNAME}}"
+    OS_REGION_NAME: "{{OS_REGION_NAME}}"
+    OS_PASSWORD: "{{OS_PASSWORD}}"
+    OS_AUTH_URL: "{{OS_AUTH_URL}}"
+    OS_IDENTITY_API_VERSION: "{{OS_IDENTITY_API_VERSION}}"
   register: result
 
 - name: create snapshot from instance (wait for completion)
-  shell:
-    cmd: |
-      source {{OPENRC_PATH}}
-      openstack server image create --wait --name {{snapshot_name}} {{instance_uuid}} -f json
-    executable: /bin/bash
+  shell: openstack server image create --wait --name {{snapshot_name}} {{instance_uuid}} -f json
   vars:
     snapshot_name: "{{SNAPSHOT_PREFIX}}{{instance_uuid}}"
+  environment:
+    OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
+    OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
+    OS_PROJECT_NAME: "{{OS_PROJECT_NAME}}"
+    OS_USERNAME: "{{OS_USERNAME}}"
+    OS_REGION_NAME: "{{OS_REGION_NAME}}"
+    OS_PASSWORD: "{{OS_PASSWORD}}"
+    OS_AUTH_URL: "{{OS_AUTH_URL}}"
+    OS_IDENTITY_API_VERSION: "{{OS_IDENTITY_API_VERSION}}"
   register: os_img_create
 
 - set_fact:
@@ -52,13 +69,18 @@
     snapshot_uuid: "{{snapshot.id}}"
 
 - name: check if snapshot is present and active
-  shell:
-    cmd: |
-      source {{OPENRC_PATH}}
-      openstack image show {{snapshot.id}} -f json
-    executable: /bin/bash
+  shell: openstack image show {{snapshot.id}} -f json
   vars:
     snapshot_status: "{{os_img_show.stdout | from_json | json_query('status')}}"
+  environment:
+    OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
+    OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
+    OS_PROJECT_NAME: "{{OS_PROJECT_NAME}}"
+    OS_USERNAME: "{{OS_USERNAME}}"
+    OS_REGION_NAME: "{{OS_REGION_NAME}}"
+    OS_PASSWORD: "{{OS_PASSWORD}}"
+    OS_AUTH_URL: "{{OS_AUTH_URL}}"
+    OS_IDENTITY_API_VERSION: "{{OS_IDENTITY_API_VERSION}}"
   register: os_img_show
   until: snapshot_status == "active"
   retries: 30
@@ -73,11 +95,17 @@
 
 - name: add tags to image
   when: IMAGE_TAGS is not none and IMAGE_TAGS | length > 0
-  shell:
-    cmd: |
-      source {{OPENRC_PATH}}
-      openstack image set {{snapshot.id}}  --tag {{item}}
+  shell: openstack image set {{snapshot.id}}  --tag {{item}}
     executable: /bin/bash
+  environment:
+    OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
+    OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
+    OS_PROJECT_NAME: "{{OS_PROJECT_NAME}}"
+    OS_USERNAME: "{{OS_USERNAME}}"
+    OS_REGION_NAME: "{{OS_REGION_NAME}}"
+    OS_PASSWORD: "{{OS_PASSWORD}}"
+    OS_AUTH_URL: "{{OS_AUTH_URL}}"
+    OS_IDENTITY_API_VERSION: "{{OS_IDENTITY_API_VERSION}}"
   with_items: IMAGE_TAGS
 
 - name: success output

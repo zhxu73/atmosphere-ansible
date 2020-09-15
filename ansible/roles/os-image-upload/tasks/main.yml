@@ -7,6 +7,19 @@
     - image_name
     - snapshot_file_path
 
+- name: check openstack secrets are set
+  assert:
+    that: "{{item}} is defined"
+  with_items:
+    - OS_PROJECT_DOMAIN_NAME
+    - OS_USER_DOMAIN_NAME
+    - OS_PROJECT_NAME
+    - OS_USERNAME
+    - OS_REGION_NAME
+    - OS_PASSWORD
+    - OS_AUTH_URL
+    - OS_IDENTITY_API_VERSION
+
 - name: check for snapshot file
   stat:
     path: "{{snapshot_file_path}}"
@@ -14,12 +27,18 @@
   failed_when: not result.stat.exists or not result.stat.isreg
 
 - name: upload to glance
-  shell:
-    cmd: |
-      source {{OPENRC_PATH}}
+  shell: |
       openstack image create --container-format bare --disk-format qcow2 \
           --file {{snapshot_file_path}} {{image_name}} -f json
-    executable: /bin/bash
+  environment:
+    OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
+    OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
+    OS_PROJECT_NAME: "{{OS_PROJECT_NAME}}"
+    OS_USERNAME: "{{OS_USERNAME}}"
+    OS_REGION_NAME: "{{OS_REGION_NAME}}"
+    OS_PASSWORD: "{{OS_PASSWORD}}"
+    OS_AUTH_URL: "{{OS_AUTH_URL}}"
+    OS_IDENTITY_API_VERSION: "{{OS_IDENTITY_API_VERSION}}"
   register: os_img_create
 
 - set_fact:
@@ -30,13 +49,18 @@
     var: image
 
 - name: check if snapshot is present
-  shell:
-    cmd: |
-      source {{OPENRC_PATH}}
-      openstack image show {{image.id}} -f json
-    executable: /bin/bash
+  shell: openstack image show {{image.id}} -f json
   vars:
     image: "{{os_img_create.stdout | from_json}}"
+  environment:
+    OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
+    OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
+    OS_PROJECT_NAME: "{{OS_PROJECT_NAME}}"
+    OS_USERNAME: "{{OS_USERNAME}}"
+    OS_REGION_NAME: "{{OS_REGION_NAME}}"
+    OS_PASSWORD: "{{OS_PASSWORD}}"
+    OS_AUTH_URL: "{{OS_AUTH_URL}}"
+    OS_IDENTITY_API_VERSION: "{{OS_IDENTITY_API_VERSION}}"
   register: os_img_show
 
 - set_fact:
@@ -52,25 +76,40 @@
 
 - name: add tags to image
   when: IMAGE_TAGS is not none and IMAGE_TAGS | length > 0
-  shell:
-    cmd: |
-      source {{OPENRC_PATH}}
-      openstack image set {{image_uuid}}  --tag {{tag}}
-    executable: /bin/bash
+  shell: openstack image set {{image_uuid}}  --tag {{tag}}
+  environment:
+    OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
+    OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
+    OS_PROJECT_NAME: "{{OS_PROJECT_NAME}}"
+    OS_USERNAME: "{{OS_USERNAME}}"
+    OS_REGION_NAME: "{{OS_REGION_NAME}}"
+    OS_PASSWORD: "{{OS_PASSWORD}}"
+    OS_AUTH_URL: "{{OS_AUTH_URL}}"
+    OS_IDENTITY_API_VERSION: "{{OS_IDENTITY_API_VERSION}}"
   with_items: IMAGE_TAGS
 
 - name: change visibility to private
   when: false # TODO
-  shell:
-    cmd: |
-      source {{OPENRC_PATH}}
-      openstack image set {{image_uuid}} --private
-    executable: /bin/bash
+  shell: openstack image set {{image_uuid}} --private
+  environment:
+    OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
+    OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
+    OS_PROJECT_NAME: "{{OS_PROJECT_NAME}}"
+    OS_USERNAME: "{{OS_USERNAME}}"
+    OS_REGION_NAME: "{{OS_REGION_NAME}}"
+    OS_PASSWORD: "{{OS_PASSWORD}}"
+    OS_AUTH_URL: "{{OS_AUTH_URL}}"
+    OS_IDENTITY_API_VERSION: "{{OS_IDENTITY_API_VERSION}}"
 
 - name: change visibility to public
   when: false # TODO
-  shell:
-    cmd: |
-      source {{OPENRC_PATH}}
-      openstack image set {{image_uuid}} --public
-    executable: /bin/bash
+  shell: openstack image set {{image_uuid}} --public
+  environment:
+    OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
+    OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
+    OS_PROJECT_NAME: "{{OS_PROJECT_NAME}}"
+    OS_USERNAME: "{{OS_USERNAME}}"
+    OS_REGION_NAME: "{{OS_REGION_NAME}}"
+    OS_PASSWORD: "{{OS_PASSWORD}}"
+    OS_AUTH_URL: "{{OS_AUTH_URL}}"
+    OS_IDENTITY_API_VERSION: "{{OS_IDENTITY_API_VERSION}}"

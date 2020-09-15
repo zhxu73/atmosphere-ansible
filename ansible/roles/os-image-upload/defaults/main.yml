@@ -1,4 +1,3 @@
 ---
 # defaults file for os-image-upload
 IMAGE_TAGS:
-OPENRC_PATH: /root/.openrc
