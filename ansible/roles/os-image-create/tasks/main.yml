@@ -45,6 +45,10 @@
 - set_fact:
     snapshot: "{{os_img_create.stdout | from_json}}"
 
+- name: snapshot
+  debug:
+    var: snapshot
+
 - name: snapshot uuid
   debug:
     var: snapshot.id
@@ -73,6 +77,10 @@
 
 - set_fact:
     snapshot: "{{os_img_show.stdout | from_json}}"
+
+- name: snapshot
+  debug:
+    var: snapshot
 
 - name: add tags to image
   when: IMAGE_TAGS is not none and IMAGE_TAGS | length > 0
