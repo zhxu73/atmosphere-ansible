@@ -22,6 +22,13 @@
     executable: /bin/bash
   register: os_img_create
 
+- set_fact:
+    image: "{{os_img_create.stdout | from_json}}"
+
+- name: image
+  debug:
+    var: image
+
 - name: check if snapshot is present
   shell:
     cmd: |
@@ -32,11 +39,16 @@
     image: "{{os_img_create.stdout | from_json}}"
   register: os_img_show
 
+- set_fact:
+    image: "{{os_img_show.stdout | from_json}}"
+
+- name: image
+  debug:
+    var: image
+
 - name: image uuid
   debug:
     var: image.id
-  vars:
-    image: "{{os_img_show.stdout | from_json}}"
 
 - name: add tags to image
   when: IMAGE_TAGS is not none and IMAGE_TAGS | length > 0
