@@ -1,0 +1,5 @@
+---
+- name: download image
+  hosts: localhost
+  roles:
+    - role: os-image-download
