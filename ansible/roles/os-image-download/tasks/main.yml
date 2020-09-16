@@ -20,12 +20,6 @@
     - OS_AUTH_URL
     - OS_IDENTITY_API_VERSION
 
-- name: check for openrc file
-  stat:
-    path: "{{OPENRC_PATH}}"
-  register: result
-  failed_when: not result.stat.exists or not result.stat.isreg
-
 - name: check if snapshot is present and active
   shell: openstack image show {{snapshot_uuid}} -f json
   vars:
