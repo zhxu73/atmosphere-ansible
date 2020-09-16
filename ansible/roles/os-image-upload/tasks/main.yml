@@ -76,7 +76,7 @@
 
 - name: add tags to image
   when: IMAGE_TAGS is not none and IMAGE_TAGS | length > 0
-  shell: openstack image set {{image_uuid}}  --tag {{tag}}
+  shell: openstack image set {{image.id}}  --tag {{tag}}
   environment:
     OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
     OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
@@ -89,21 +89,7 @@
   with_items: IMAGE_TAGS
 
 - name: change visibility to private
-  when: false # TODO
-  shell: openstack image set {{image_uuid}} --private
-  environment:
-    OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
-    OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
-    OS_PROJECT_NAME: "{{OS_PROJECT_NAME}}"
-    OS_USERNAME: "{{OS_USERNAME}}"
-    OS_REGION_NAME: "{{OS_REGION_NAME}}"
-    OS_PASSWORD: "{{OS_PASSWORD}}"
-    OS_AUTH_URL: "{{OS_AUTH_URL}}"
-    OS_IDENTITY_API_VERSION: "{{OS_IDENTITY_API_VERSION}}"
-
-- name: change visibility to public
-  when: false # TODO
-  shell: openstack image set {{image_uuid}} --public
+  shell: openstack image set {{image.id}} --private
   environment:
     OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
     OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
