@@ -96,7 +96,6 @@
 - name: add tags to image
   when: IMAGE_TAGS is not none and IMAGE_TAGS | length > 0
   shell: openstack image set {{snapshot.id}}  --tag {{item}}
-    executable: /bin/bash
   environment:
     OS_PROJECT_DOMAIN_NAME: "{{OS_PROJECT_DOMAIN_NAME}}"
     OS_USER_DOMAIN_NAME: "{{OS_USER_DOMAIN_NAME}}"
